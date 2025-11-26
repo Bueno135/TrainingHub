@@ -1,0 +1,166 @@
+# ============================================
+# TrainingHub - .gitignore
+# ============================================
+
+# ============================================
+# Arquivos de Ambiente e Configuração
+# ============================================
+.env
+.env.local
+.env.*.local
+.env.backup
+
+# ============================================
+# Logs e Debug
+# ============================================
+*.log
+logs/
+*.log.*
+error_log
+debug.log
+php_errors.log
+
+# ============================================
+# Arquivos Temporários
+# ============================================
+*.tmp
+*.temp
+*.cache
+*.swp
+*.swo
+*~
+.cache/
+
+# ============================================
+# Sistema Operacional
+# ============================================
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ============================================
+# IDEs e Editores
+# ============================================
+# PHPStorm / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# NetBeans
+nbproject/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# Eclipse
+.project
+.classpath
+.settings/
+build/
+
+# ============================================
+# Dependências e Vendor
+# ============================================
+# Composer
+vendor/
+composer.lock
+composer.phar
+
+# NPM (se usar no futuro)
+node_modules/
+package-lock.json
+yarn.lock
+
+# ============================================
+# Uploads e Arquivos do Usuário
+# ============================================
+public/uploads/
+public/storage/
+storage/app/
+storage/framework/
+storage/logs/
+uploads/
+files/
+
+# ============================================
+# Backups e SQL
+# ============================================
+*.sql
+*.bak
+*.backup
+*.dump
+*.sql.gz
+*.sql.zip
+backup/
+backups/
+
+# ============================================
+# Sessões e Cache PHP
+# ============================================
+sessions/
+cache/
+tmp/
+
+# ============================================
+# Testes e Coverage
+# ============================================
+.phpunit.result.cache
+coverage/
+.phpunit.cache/
+phpunit.xml
+
+# ============================================
+# Build e Deploy
+# ============================================
+build/
+dist/
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# ============================================
+# Documentação Gerada
+# ============================================
+docs/_build/
+site/
+
+# ============================================
+# Arquivos Específicos do Projeto
+# ============================================
+# Manter database.sql no repositório, mas ignorar backups
+*.sql.backup
+*.sql.old
+
+# Configurações locais (se houver)
+config.local.php
+config/production.php
