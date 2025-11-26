@@ -21,12 +21,36 @@
         $perfil = $stmt->fetch();
         $tipoBadge = 'Professor';
         $tipoIcon = '💪';
+        
+        // Estatísticas do professor
+        $stmt = $db->prepare("SELECT COUNT(*) FROM propostas WHERE professor_id = (SELECT id FROM professores WHERE user_id = ?)");
+        $stmt->execute([$user['id']]);
+        $propostasEnviadas = $stmt->fetchColumn();
+        
+        $stmt = $db->prepare("
+            SELECT COUNT(*) FROM sessoes s
+            INNER JOIN propostas p ON s.proposta_id = p.id
+            WHERE p.professor_id = (SELECT id FROM professores WHERE user_id = ?) AND s.status = 'concluida'
+        ");
+        $stmt->execute([$user['id']]);
+        $sessoesConcluidas = $stmt->fetchColumn();
+        
+        $stmt = $db->prepare("
+            SELECT COALESCE(SUM(p.valor_proposto), 0) FROM propostas p
+            WHERE p.professor_id = (SELECT id FROM professores WHERE user_id = ?) AND p.status = 'aceita'
+        ");
+        $stmt->execute([$user['id']]);
+        $ganhosTotais = $stmt->fetchColumn();
     } else {
         $stmt = $db->prepare("SELECT * FROM academias WHERE user_id = ?");
         $stmt->execute([$user['id']]);
         $perfil = $stmt->fetch();
         $tipoBadge = 'Academia';
         $tipoIcon = '🏢';
+        
+        require_once __DIR__ . '/../../Controller/AcademiaController.php';
+        $academiaController = new AcademiaController($db);
+        $stats = $academiaController->getStats($user['id']);
     }
 
     $nomeUsuario = $perfil['nome'] ?? 'Usuário';
@@ -59,12 +83,12 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="icon">📊</div>
-                <div class="value">0</div>
+                <div class="value"><?php echo $propostasEnviadas ?? 0; ?></div>
                 <div class="label">Propostas Enviadas</div>
             </div>
             <div class="stat-card">
                 <div class="icon">✅</div>
-                <div class="value">0</div>
+                <div class="value"><?php echo $sessoesConcluidas ?? 0; ?></div>
                 <div class="label">Sessões Concluídas</div>
             </div>
             <div class="stat-card">
@@ -74,7 +98,7 @@
             </div>
             <div class="stat-card">
                 <div class="icon">💰</div>
-                <div class="value">R$ 0</div>
+                <div class="value">R$ <?php echo number_format($ganhosTotais ?? 0, 2, ',', '.'); ?></div>
                 <div class="label">Ganhos Totais</div>
             </div>
         </div>
@@ -82,19 +106,19 @@
         <div class="quick-actions">
             <h2>Ações Rápidas</h2>
             <div class="actions-grid">
-                <a href="#" class="action-btn">
+                <a href="index.php?page=perfil" class="action-btn">
                     <div class="icon">📝</div>
                     <div class="title">Completar Perfil</div>
                 </a>
-                <a href="#" class="action-btn">
+                <a href="index.php?page=freelances" class="action-btn">
                     <div class="icon">🔍</div>
                     <div class="title">Buscar Freelances</div>
                 </a>
-                <a href="#" class="action-btn">
-                    <div class="icon">📅</div>
-                    <div class="title">Minha Agenda</div>
+                <a href="index.php?page=propostas" class="action-btn">
+                    <div class="icon">📋</div>
+                    <div class="title">Minhas Propostas</div>
                 </a>
-                <a href="#" class="action-btn">
+                <a href="index.php?page=perfil" class="action-btn">
                     <div class="icon">⏰</div>
                     <div class="title">Disponibilidade</div>
                 </a>
@@ -106,22 +130,22 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="icon">📢</div>
-                <div class="value">0</div>
+                <div class="value"><?php echo $stats['total_freelances'] ?? 0; ?></div>
                 <div class="label">Freelances Publicados</div>
             </div>
             <div class="stat-card">
                 <div class="icon">👥</div>
-                <div class="value">0</div>
+                <div class="value"><?php echo $stats['professores_contratados'] ?? 0; ?></div>
                 <div class="label">Professores Contratados</div>
             </div>
             <div class="stat-card">
-                <div class="icon">✅</div>
-                <div class="value">0</div>
-                <div class="label">Sessões Realizadas</div>
+                <div class="icon">📋</div>
+                <div class="value"><?php echo $stats['total_propostas'] ?? 0; ?></div>
+                <div class="label">Propostas Recebidas</div>
             </div>
             <div class="stat-card">
                 <div class="icon">💵</div>
-                <div class="value">R$ 0</div>
+                <div class="value">R$ <?php echo number_format($stats['total_investido'] ?? 0, 2, ',', '.'); ?></div>
                 <div class="label">Total Investido</div>
             </div>
         </div>
@@ -129,19 +153,19 @@
         <div class="quick-actions">
             <h2>Ações Rápidas</h2>
             <div class="actions-grid">
-                <a href="#" class="action-btn">
+                <a href="index.php?page=perfil" class="action-btn">
                     <div class="icon">📝</div>
                     <div class="title">Completar Perfil</div>
                 </a>
-                <a href="#" class="action-btn">
+                <a href="index.php?page=freelances&action=criar" class="action-btn">
                     <div class="icon">➕</div>
                     <div class="title">Publicar Freelance</div>
                 </a>
-                <a href="#" class="action-btn">
-                    <div class="icon">🔍</div>
-                    <div class="title">Buscar Professores</div>
+                <a href="index.php?page=freelances" class="action-btn">
+                    <div class="icon">📋</div>
+                    <div class="title">Meus Freelances</div>
                 </a>
-                <a href="#" class="action-btn">
+                <a href="index.php?page=propostas" class="action-btn">
                     <div class="icon">📊</div>
                     <div class="title">Ver Propostas</div>
                 </a>
