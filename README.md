@@ -33,17 +33,36 @@ git clone <url-do-repositorio>
 cd TrainingHub
 ```
 
-2. Configure o banco de dados:
-   - Crie um banco de dados MySQL
-   - Execute o script `database.sql` para criar as tabelas
-   - Configure as credenciais em `config/database.php`
+2. Configure as variáveis de ambiente:
+   - Copie o arquivo `.env.example` para `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   - Edite o arquivo `.env` e configure as variáveis necessárias:
+     - `DB_HOST`: Host do banco de dados (padrão: localhost)
+     - `DB_DATABASE`: Nome do banco de dados (padrão: traininghub)
+     - `DB_USERNAME`: Usuário do banco de dados (padrão: root)
+     - `DB_PASSWORD`: Senha do banco de dados
+     - `APP_URL`: URL da aplicação (padrão: http://localhost)
+     - **Email (Gmail SMTP):**
+       - `MAIL_SMTP_ENABLED`: Defina como `true` para usar SMTP
+       - `MAIL_SMTP_USERNAME`: Seu email do Gmail
+       - `MAIL_SMTP_PASSWORD`: **Senha de App do Gmail** (veja `CONFIGURACAO_EMAIL.md`)
+       - ⚠️ **Importante:** Use a senha de app do Gmail, não sua senha normal!
 
-3. Configure o servidor web:
+3. Configure o banco de dados:
+   - Crie um banco de dados MySQL
+   - Execute o script `database.sql` para criar as tabelas:
+   ```bash
+   mysql -u root -p traininghub < database.sql
+   ```
+
+4. Configure o servidor web:
    - Configure o DocumentRoot para apontar para a pasta `public`
    - Ou use o servidor PHP embutido: `php -S localhost:8000 -t public`
 
-4. Acesse a aplicação:
-   - Abra o navegador em `http://localhost:8000` (ou a URL configurada)
+5. Acesse a aplicação:
+   - Abra o navegador em `http://localhost:8000` (ou a URL configurada no `.env`)
 
 ## 📁 Estrutura do Projeto
 

@@ -14,8 +14,15 @@ class EmailService {
             $from = $this->config['from_email'] ?? 'noreply@traininghub.com';
         }
 
+        // Se SMTP estiver habilitado, usar SMTP
+        if (!empty($this->config['smtp_enabled']) && $this->config['smtp_enabled'] === true) {
+            return $this->sendViaSMTP($to, $subject, $message, $from);
+        }
+
+        // Caso contrário, usar mail() nativo
+        $fromName = $this->config['from_name'] ?? 'TrainingHub';
         $headers = [
-            'From: ' . $from,
+            'From: ' . $fromName . ' <' . $from . '>',
             'Reply-To: ' . $from,
             'X-Mailer: PHP/' . phpversion(),
             'MIME-Version: 1.0',
@@ -25,6 +32,108 @@ class EmailService {
         $headersString = implode("\r\n", $headers);
 
         return mail($to, $subject, $message, $headersString);
+    }
+
+    private function sendViaSMTP($to, $subject, $message, $from) {
+        $host = $this->config['smtp_host'] ?? 'smtp.gmail.com';
+        $port = $this->config['smtp_port'] ?? 587;
+        $username = $this->config['smtp_username'] ?? '';
+        $password = $this->config['smtp_password'] ?? '';
+        $encryption = $this->config['smtp_encryption'] ?? 'tls';
+        $fromName = $this->config['from_name'] ?? 'TrainingHub';
+
+        if (empty($username) || empty($password)) {
+            error_log("EmailService: SMTP habilitado mas credenciais não configuradas");
+            return false;
+        }
+
+        try {
+            // Criar conexão
+            $socket = @fsockopen($host, $port, $errno, $errstr, 30);
+            if (!$socket) {
+                error_log("EmailService: Erro ao conectar ao SMTP: $errstr ($errno)");
+                return false;
+            }
+
+            // Ler resposta inicial
+            $this->readResponse($socket);
+
+            // EHLO
+            fputs($socket, "EHLO " . $host . "\r\n");
+            $this->readResponse($socket);
+
+            // STARTTLS se necessário
+            if ($encryption === 'tls') {
+                fputs($socket, "STARTTLS\r\n");
+                $this->readResponse($socket);
+                stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+                fputs($socket, "EHLO " . $host . "\r\n");
+                $this->readResponse($socket);
+            }
+
+            // Autenticação
+            fputs($socket, "AUTH LOGIN\r\n");
+            $this->readResponse($socket);
+
+            fputs($socket, base64_encode($username) . "\r\n");
+            $this->readResponse($socket);
+
+            fputs($socket, base64_encode($password) . "\r\n");
+            $authResponse = $this->readResponse($socket);
+            if (strpos($authResponse, '235') === false) {
+                error_log("EmailService: Falha na autenticação SMTP");
+                fclose($socket);
+                return false;
+            }
+
+            // MAIL FROM
+            fputs($socket, "MAIL FROM: <" . $from . ">\r\n");
+            $this->readResponse($socket);
+
+            // RCPT TO
+            fputs($socket, "RCPT TO: <" . $to . ">\r\n");
+            $this->readResponse($socket);
+
+            // DATA
+            fputs($socket, "DATA\r\n");
+            $this->readResponse($socket);
+
+            // Headers e corpo
+            $emailData = "From: " . $fromName . " <" . $from . ">\r\n";
+            $emailData .= "To: <" . $to . ">\r\n";
+            $emailData .= "Subject: " . $subject . "\r\n";
+            $emailData .= "MIME-Version: 1.0\r\n";
+            $emailData .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $emailData .= "\r\n";
+            $emailData .= $message . "\r\n";
+            $emailData .= ".\r\n";
+
+            fputs($socket, $emailData);
+            $this->readResponse($socket);
+
+            // QUIT
+            fputs($socket, "QUIT\r\n");
+            fclose($socket);
+
+            return true;
+        } catch (Exception $e) {
+            error_log("EmailService: Erro ao enviar email via SMTP: " . $e->getMessage());
+            if (isset($socket)) {
+                fclose($socket);
+            }
+            return false;
+        }
+    }
+
+    private function readResponse($socket) {
+        $response = '';
+        while ($line = fgets($socket, 515)) {
+            $response .= $line;
+            if (substr($line, 3, 1) == ' ') {
+                break;
+            }
+        }
+        return $response;
     }
 
     public function sendWelcomeEmail($email, $nome, $tipo) {

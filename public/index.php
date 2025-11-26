@@ -3,6 +3,14 @@
 // ============================================
 // public/index.php (FRONT CONTROLLER)
 // ============================================
+
+// Carregar variáveis de ambiente
+require_once __DIR__ . '/../config/env.php';
+
+// Configurar timezone
+$appConfig = require __DIR__ . '/../config/app.php';
+date_default_timezone_set($appConfig['timezone']);
+
 session_start();
 
 // Autoload simples
